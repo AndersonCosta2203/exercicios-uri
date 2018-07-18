@@ -2,7 +2,6 @@ package br.com.uri;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +13,13 @@ public class TdaRacional {
 
 		try (Scanner e = new Scanner(System.in)) {
 			Integer tamanhoLista = 0;
+			final String regexSoNumero = "\\d*";
 
 			System.out.println("Insira o tamanho da lista: ");
 			tamanhoLista = e.nextInt();
 			e.nextLine();
 
-			forUm : for (int i = 0; i < tamanhoLista && i <= 10000 ; i++) {
+			for (int i = 0; i < tamanhoLista && i <= 10000; i++) {
 				System.out.println("Informe a String: ");
 				String val = e.nextLine();
 
@@ -27,13 +27,11 @@ public class TdaRacional {
 
 				List<BigDecimal> listaValores = new ArrayList<>();
 
-				char[] arrayDigitos = Arrays.toString(fraseChar).replaceAll("\\D*", "").toCharArray();
-				forDois: for (int n = 0; n < arrayDigitos.length; n++) {
-					BigDecimal valor = new BigDecimal(String.valueOf(arrayDigitos[n])).setScale(0);
-					if (valor.longValue() > 10000) {
-						continue forUm;
+				for (String str : fraseChar) {
+					if (str.matches(regexSoNumero)) {
+						BigDecimal valor = new BigDecimal(String.valueOf(str)).setScale(0);
+						listaValores.add(valor);
 					}
-					listaValores.add(valor);
 				}
 
 				Map<String, BigDecimal> mapFormula = new HashMap<>();
@@ -92,20 +90,15 @@ public class TdaRacional {
 
 	private static void processarDivisao(long numerador, long denominador) {
 
-		boolean aindaDivide = true;
 		long newNumerador = numerador;
 		long newDenominador = denominador;
-		do {
-			if (newNumerador % 2 == 0 && newDenominador % 2 == 0) {
-				newNumerador = newNumerador / 2;
-				newDenominador = newDenominador / 2;
-			} else if (newNumerador % 3 == 0 && newDenominador % 3 == 0) {
-				newNumerador = newNumerador / 3;
-				newDenominador = newDenominador / 3;
-			} else {
-				aindaDivide = false;
+		for (int i = 1; i < 1000; i++) {
+			if (newNumerador % i == 0 && newDenominador % i == 0) {
+				newNumerador = newNumerador / i;
+				newDenominador = newDenominador / i;
+				i = 1;
 			}
-		} while (aindaDivide);
+		}
 		System.out.println(numerador + "/" + denominador + " = " + newNumerador + "/" + newDenominador);
 	}
 
