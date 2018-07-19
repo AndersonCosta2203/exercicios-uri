@@ -3,17 +3,16 @@ package br.com.uri;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Map;
-import java.util.OptionalDouble;
 import java.util.Scanner;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 public class Estiagem {
+	
+	private static List<Consumo> listaDeConsumo = new ArrayList<>();
+	private static List<Consumo> listaDeConsumoParaMedia = new ArrayList<>();
 
 	public static void main(String[] args) {
 		
@@ -31,21 +30,24 @@ public class Estiagem {
 				String lixo = e.nextLine();
 				
 				if (quantidadeImoveis > 0) {
+					listaDeConsumo.clear();
+					listaDeConsumoParaMedia.clear();
 					List<String> listaDeDadosConsumo = new ArrayList<>();
-					for (int i = 0; (i < quantidadeImoveis) && (i <= 1_000_000); i++) {
-						
-						/*
-						 * Deve-se listar, por ordem ascendente de consumo, 
-						 * a quantidade de pessoas seguido de um hífen e o 
-						 * consumo destas pessoas, arredondando o valor para baixo.
-						 * 
-						 * */
-						System.out.println("Indique a quantidade e o consumo total: ");
-						String dadosConsumo = e.nextLine();
-						listaDeDadosConsumo.add(dadosConsumo);
-					}
+//					for (int i = 0; (i < quantidadeImoveis) && (i <= 1_000_000); i++) {
+//						
+//						/*
+//						 * Deve-se listar, por ordem ascendente de consumo, 
+//						 * a quantidade de pessoas seguido de um hífen e o 
+//						 * consumo destas pessoas, arredondando o valor para baixo.
+//						 * 
+//						 * */
+//						System.out.println("Indique a quantidade e o consumo total: ");
+//						String dadosConsumo = e.nextLine();
+//						listaDeDadosConsumo.add(dadosConsumo);
+//					}
 					
-					List<Consumo> listaConsumoPorPessoa = new ArrayList<>();
+					listaDeDadosConsumo = Arrays.asList("1 25", "2 20", "3 31", "2 40", "6 70");
+					
 					for (String dados : listaDeDadosConsumo) {
 						String[] valor = dados.split(" ");
 						if (valor.length > 1) {
@@ -54,25 +56,17 @@ public class Estiagem {
 							if (quantidadePessoas.compareTo(BigDecimal.ZERO) > 0 && 
 									consumo.compareTo(BigDecimal.ZERO) > 0) {
 								BigDecimal mediaDeGasto = consumo.divide(quantidadePessoas, RoundingMode.DOWN).setScale(2);
-								listaConsumoPorPessoa.add(
-										new Consumo(quantidadePessoas.intValue(), consumo.intValue(), mediaDeGasto));
+								listaDeConsumoParaMedia.add(new Consumo(quantidadePessoas.intValue(), consumo.intValue(), mediaDeGasto));
+								adicionarNaFilaEVerificarAgrupamento(new Consumo(quantidadePessoas.intValue(), consumo.intValue(), mediaDeGasto));
 							}						
 						}					
 					}
-					
-					Map<Integer, Integer> mapGroup = listaConsumoPorPessoa
-							.stream()							
-							.collect(Collectors.groupingBy(
-									Consumo::getMediaDeGastoInt, 
-									Collectors.summingInt(Consumo::getQuantidadeDePessoas))
-									);
 									
-					List<Consumo> listaOrdenada = listaConsumoPorPessoa
-							.stream()
-							.sorted(Comparator.comparing(Consumo::getMediaDeGasto))
-							.collect(Collectors.toList());
+					List<Consumo> listaOrdenada = listaDeConsumo.stream()
+							.sorted(
+									Comparator.comparing(Consumo::getMediaDeGasto)).collect(Collectors.toList());
 					
-					StringBuilder valorOrdenado = new StringBuilder();		
+					StringBuilder valorOrdenado = new StringBuilder();	
 					for (Consumo consumo : listaOrdenada) {
 						valorOrdenado.append(valorOrdenado == null || valorOrdenado.length() == 0 ? 
 								consumo.quantidadeDePessoas +"-"+ consumo.mediaDeGasto.longValue() : 
@@ -80,7 +74,7 @@ public class Estiagem {
 						
 					}
 					
-					BigDecimal totalQuantidade = BigDecimal.valueOf(listaOrdenada
+					BigDecimal quantidadeTotalDePessoa = BigDecimal.valueOf(listaDeConsumoParaMedia
 							.stream()
 							.map((Consumo c) -> {
 								return c.quantidadeDePessoas;
@@ -88,7 +82,7 @@ public class Estiagem {
 							.mapToDouble(Integer::doubleValue)
 							.sum());
 
-					BigDecimal totalGastoImovel = BigDecimal.valueOf(listaOrdenada
+					BigDecimal consumoDeAguaTotal = BigDecimal.valueOf(listaDeConsumoParaMedia
 						.stream()
 						.map((Consumo c) -> {
 							return c.gastoTotalImovel;
@@ -96,7 +90,8 @@ public class Estiagem {
 						.mapToDouble(Integer::doubleValue)
 						.sum());
 					
-					BigDecimal media = totalGastoImovel.divide(totalQuantidade, RoundingMode.DOWN) 
+					System.out.println(quantidadeTotalDePessoa +" "+consumoDeAguaTotal);
+					BigDecimal media = consumoDeAguaTotal.divide(quantidadeTotalDePessoa, RoundingMode.UP) 
 							.setScale(2);
 					
 					System.out.println("Cidade# n: "+contador);
@@ -107,6 +102,26 @@ public class Estiagem {
 				}
 			} while (quantidadeImoveis > 0 );
 		}
+	}
+	
+	public static boolean compararERetornarSevalorEIgual(BigDecimal vUm, BigDecimal vDois) {
+		return vUm.setScale(0, RoundingMode.HALF_DOWN)
+				.compareTo(vDois.setScale(0, RoundingMode.HALF_DOWN)) == 0;
+	}
+	
+	public static void adicionarNaFilaEVerificarAgrupamento(Consumo c) {
+		boolean encontrou = listaDeConsumo.stream()
+			.filter((Consumo consumo) -> {
+				return compararERetornarSevalorEIgual(consumo.mediaDeGasto, c.getMediaDeGasto());	
+			})
+			.map((Consumo consumo) -> {
+				consumo.setQuantidadeDePessoas(
+						consumo.getQuantidadeDePessoas() + 
+						c.getQuantidadeDePessoas());
+				return consumo;
+			})
+			.count() > 0;
+		if (!encontrou) { listaDeConsumo.add(c); }	
 	}
 	
 	static class Consumo {
