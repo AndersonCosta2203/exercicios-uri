@@ -1,4 +1,4 @@
-package br.com.uri;
+package br.com.uri.listacircular;
 
 public class Crianca {
 
@@ -29,6 +29,11 @@ public class Crianca {
 
 	public void setNome(String nome) {
 		this.nome = nome;
+	}
+
+	@Override
+	public String toString() {
+		return "Crianca [codigo=" + codigo + ", nome=" + nome + "]";
 	}
 
 }

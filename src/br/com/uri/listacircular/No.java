@@ -1,10 +1,19 @@
-package br.com.uri;
+package br.com.uri.listacircular;
 
 public class No {
 	private No proximo;
 	private No anterior;
 	private Integer id;
 	private Crianca crianca;
+
+	public No(Crianca crianca) {
+		super();
+		this.crianca = crianca;
+	}
+
+	public No() {
+		super();
+	}
 
 	public No getProximo() {
 		return proximo;
